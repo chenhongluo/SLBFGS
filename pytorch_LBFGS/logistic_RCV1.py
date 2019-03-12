@@ -134,53 +134,79 @@ Nk_size = int((1 - 2 * overlap_ratio) * batch_size)
 
 # sample previous overlap gradient
 end = 0
-begin = time.time()
+
 random_index = np.random.permutation(range(len(train_dataset)))
 
+begin = time.time()
 Ok_prev = random_index[0:Ok_size]
 X_trains,y_trains = train_dataset.getItems(Ok_prev)
-end1 = time.time() - begin
+end = time.time() - begin
+print(end)
+
+begin = time.time()
 g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_trains, y_trains, opfun)
 end = time.time() - begin
-print(end1,end)
+print(end)
 
 # main loop
 
 
 for n_iter in range(max_iter):
-    begin = time.time()
+
     # training mode
     model.train()
 
     # sample current non-overlap and next overlap gradient
+    begin = time.time()
     random_index = np.random.permutation(range(len(train_dataset)))
     Ok = random_index[0:Ok_size]
     Nk = random_index[Ok_size:(Ok_size + Nk_size)]
 
     # compute overlap gradient and objective
     X_trains, y_trains = train_dataset.getItems(Ok)
+    end = time.time() - begin
+    print(end)
+
+    begin = time.time()
     g_Ok, obj_Ok = get_grad(optimizer, X_trains, y_trains, opfun)
+    end = time.time() - begin
+    print(end)
 
     # compute non-overlap gradient and objective
+    begin = time.time()
     X_trains, y_trains = train_dataset.getItems(Nk)
     g_Nk, obj_Nk = get_grad(optimizer, X_trains, y_trains, opfun)
+    end = time.time() - begin
+    print(end)
 
     # compute accumulated gradient over sample
     g_Sk = overlap_ratio * (g_Ok_prev + g_Ok) + (1 - 2 * overlap_ratio) * g_Nk
 
     # two-loop recursion to compute search direction
+    begin = time.time()
     p = optimizer.two_loop_recursion(-g_Sk)
+    end = time.time() - begin
+    print(end)
 
     # perform line search step
+    begin = time.time()
     lr = optimizer.step(p, g_Ok, g_Sk=g_Sk)
+    end = time.time() - begin
+    print(end)
 
     # compute previous overlap gradient for next sample
+    begin = time.time()
     Ok_prev = Ok
     X_trains, y_trains = train_dataset.getItems(Ok_prev)
     g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_trains, y_trains, opfun)
+    end = time.time() - begin
+    print(end)
 
     # curvature update
+    begin = time.time()
     optimizer.curvature_update(g_Ok_prev, eps=0.2, damping=True)
+    end = time.time() - begin
+    print(end)
 
     # compute statistics
 
@@ -191,20 +217,20 @@ for n_iter in range(max_iter):
     # train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, np.array([]),
     #                                                 np.array([]), opfun, accfun, ghost_batch=128)
 
-    all_test_loss = 0.0
-    all_test_acc = 0.0
-    count = (80-30)/10
-    for i in range(int(count)):
-        X_tests, y_tests = test_dataset.getItems(range(0,i*10000))
-        train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, X_tests, y_tests, opfun, accfun, ghost_batch=128)
-        all_test_acc += test_acc
-        all_test_loss += test_loss
-    all_test_loss/=10.0
-    all_test_acc/=10.0
-
-    # print data
-    print('Iter:', n_iter + 1, 'lr:', lr, 'Training Loss:', train_loss,
-          'Test Loss:', all_test_loss, 'Test Accuracy:', all_test_acc, 'training time: %.2f seconds' %end)
+    # all_test_loss = 0.0
+    # all_test_acc = 0.0
+    # count = (80-30)/10
+    # for i in range(int(count)):
+    #     X_tests, y_tests = test_dataset.getItems(range(0,i*100000))
+    #     train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, X_tests, y_tests, opfun, accfun, ghost_batch=128)
+    #     all_test_acc += test_acc
+    #     all_test_loss += test_loss
+    # all_test_loss/=10.0
+    # all_test_acc/=10.0
+    #
+    # # print data
+    # print('Iter:', n_iter + 1, 'lr:', lr, 'Training Loss:', train_loss,
+    #       'Test Loss:', all_test_loss, 'Test Accuracy:', all_test_acc, 'training time: %.2f seconds' %end)
 
 # begin = time.time()
 # # Training the Model
