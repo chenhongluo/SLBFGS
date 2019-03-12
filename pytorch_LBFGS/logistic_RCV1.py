@@ -82,10 +82,10 @@ print(torch.cuda.is_available())
 device = torch.device("cuda")
 
 train_files = []
-for i in range(0, 5):
+for i in range(0, 30):
     train_files.append('RCV1_%d-80.data' % i)
 test_files = []
-for i in range(5, 15):
+for i in range(30, 80):
     test_files.append('RCV1_%d-80.data' % i)
 
 # Dataset
@@ -180,7 +180,7 @@ for n_iter in range(max_iter):
 
     # compute statistics
 
-    end = end + time.time() - begin
+    end = time.time() - begin
 
 
     model.eval()
@@ -189,9 +189,7 @@ for n_iter in range(max_iter):
 
     # print data
     print('Iter:', n_iter + 1, 'lr:', lr, 'Training Loss:', train_loss,
-          'Test Loss:', test_loss, 'Test Accuracy:', test_acc)
-
-print('training time: %.2f seconds' %end)
+          'Test Loss:', test_loss, 'Test Accuracy:', test_acc, 'training time: %.2f seconds' %end)
 
 # begin = time.time()
 # # Training the Model
