@@ -1,11 +1,15 @@
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
-from torch.autograd import Variable
+import sys
+sys.path.append('../../functions/')
+
 import numpy as np
-import os
-import time
+import torch
+import torch.optim
+import torch.nn as nn
+import torch.nn.functional as F
+from keras.datasets import cifar10 # to load dataset
+
+from utils import compute_stats, get_grad
+from LBFGS import LBFGS
 
 # customized class for RCV1 dataset
 class RCV1DataSet(Dataset):
