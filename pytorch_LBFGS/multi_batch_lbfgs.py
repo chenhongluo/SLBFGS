@@ -53,6 +53,7 @@ X_test = X_test.astype('float32')
 X_train = X_train/255
 X_test = X_test/255
 
+print(X_train.shape)
 X_train = np.transpose(X_train, (0, 3, 1, 2))
 X_test = np.transpose(X_test, (0, 3, 1, 2))
 
@@ -117,6 +118,7 @@ Nk_size = int((1 - 2*overlap_ratio)*batch_size)
 # sample previous overlap gradient
 random_index = np.random.permutation(range(X_train.shape[0]))
 Ok_prev = random_index[0:Ok_size]
+
 g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_train[Ok_prev], y_train[Ok_prev], opfun)
 
 # main loop

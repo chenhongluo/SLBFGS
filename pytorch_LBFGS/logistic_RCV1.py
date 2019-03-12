@@ -71,7 +71,7 @@ class RCV1DataSet(Dataset):
 input_size = 47237
 num_classes = 2
 num_epochs = 1
-batch_size = 10000
+batch_size = 8192
 learning_rate = 1.0
 max_iter = 200                      # note each iteration is NOT an epoch
 ghost_batch = 128
@@ -117,8 +117,8 @@ class LogisticRegression(nn.Module):
         return out
 
 
-model = LogisticRegression(input_size, num_classes).cuda()
-opfun = lambda X: model.forward(torch.from_numpy(X).cuda())
+model = LogisticRegression(input_size, num_classes).to(device)
+opfun = lambda X: model.forward(torch.from_numpy(X).to(device))
 
 predsfun = lambda op: np.argmax(op.cpu().data.numpy(), 1)
 
