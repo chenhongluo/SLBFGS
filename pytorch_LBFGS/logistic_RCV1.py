@@ -133,13 +133,17 @@ Ok_size = int(overlap_ratio * batch_size)
 Nk_size = int((1 - 2 * overlap_ratio) * batch_size)
 
 # sample previous overlap gradient
+end = 0
+begin = time.time()
 random_index = np.random.permutation(range(len(train_dataset)))
 Ok_prev = random_index[0:Ok_size]
 X_trains,y_trains = train_dataset.getItems(Ok_prev)
 g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_trains, y_trains, opfun)
+end = time.time() - begin
+print(end)
 
 # main loop
-end = 0
+
 
 for n_iter in range(max_iter):
     begin = time.time()
@@ -182,14 +186,14 @@ for n_iter in range(max_iter):
 
 
     model.eval()
-    train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, [],
-                                                    [], opfun, accfun, ghost_batch=128)
+    train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, np.zeros(shape=0),
+                                                    np.zeros(shape=0), opfun, accfun, ghost_batch=128)
 
     all_test_loss = 0.0
     all_test_acc = 0.0
     for i in range(10):
         X_tests, y_tests = test_dataset.getItems(range(0,i*10000))
-        train_loss, test_loss, test_acc = compute_stats([], [], X_tests, y_tests, opfun, accfun, ghost_batch=128)
+        train_loss, test_loss, test_acc = compute_stats(np.zeros(shape=0), np.zeros(shape=0), X_tests, y_tests, opfun, accfun, ghost_batch=128)
         all_test_acc += test_acc
         all_test_loss += test_loss
     all_test_loss/=10.0
