@@ -103,7 +103,7 @@ else:
     predsfun = lambda op: np.argmax(op.data.numpy(), 1)
 
 # Do the forward pass, then compute the accuracy
-accfun   = lambda op, y: np.mean(np.equal(predsfun(op), y.squeeze()))*100
+accfun = lambda op, y: np.mean(np.equal(predsfun(op), y.squeeze()))*100
 
 #%% Define optimizer
 
