@@ -54,19 +54,18 @@ class RCV1DataSet(Dataset):
             doc[index] = value
         label = self.label[idx]
         # print('select %d' % idx)
-        return torch.tensor(doc), torch.tensor(label)
+        return doc,label
 
-    def getItems(self):
+    def getItems(self,idxs):
         docs = np.zeros(shape=(len(self.data),self.dim), dtype=np.float32)
         labels = np.zeros(shape=(len(self.data)), dtype=np.float32)
-        for k in range(len(self.data)):
+        for k in idxs:
             for i in range(0, len(self.data[k]), 2):
                 index = self.data[k][i]
                 value = self.data[k][i + 1]
                 docs[k][index] = value
             labels[k] = self.label[k]
         return docs,labels
-
 
 # Hyper Parameters
 input_size = 47237
@@ -96,16 +95,13 @@ test_dataset = RCV1DataSet(data_files=test_files, root_dir='./data/RCV1')
 # batch_size = train_dataset.n_docs
 # Dataset Loader (Input Pipline)
 # batch_size = len(train_dataset)
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=batch_size,
-                                           shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=100,
-                                          shuffle=False)
-
-(X_train, y_train) = train_dataset.getItems()
-(X_test, y_test) = test_dataset.getItems()
+# train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+#                                            batch_size=batch_size,
+#                                            shuffle=True)
+#
+# test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+#                                           batch_size=100,
+#                                           shuffle=False)
 
 # Model
 class LogisticRegression(nn.Module):
@@ -137,9 +133,10 @@ Ok_size = int(overlap_ratio * batch_size)
 Nk_size = int((1 - 2 * overlap_ratio) * batch_size)
 
 # sample previous overlap gradient
-random_index = np.random.permutation(range(X_train.shape[0]))
+random_index = np.random.permutation(range(len(train_dataset)))
 Ok_prev = random_index[0:Ok_size]
-g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_train[Ok_prev], y_train[Ok_prev], opfun)
+X_trains,y_trains = train_dataset.getItems(Ok_prev)
+g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_trains, y_trains, opfun)
 
 # main loop
 end = 0
@@ -150,15 +147,17 @@ for n_iter in range(max_iter):
     model.train()
 
     # sample current non-overlap and next overlap gradient
-    random_index = np.random.permutation(range(X_train.shape[0]))
+    random_index = np.random.permutation(range(len(train_dataset)))
     Ok = random_index[0:Ok_size]
     Nk = random_index[Ok_size:(Ok_size + Nk_size)]
 
     # compute overlap gradient and objective
-    g_Ok, obj_Ok = get_grad(optimizer, X_train[Ok], y_train[Ok], opfun)
+    X_trains, y_trains = train_dataset.getItems(Ok)
+    g_Ok, obj_Ok = get_grad(optimizer, X_trains, y_trains, opfun)
 
     # compute non-overlap gradient and objective
-    g_Nk, obj_Nk = get_grad(optimizer, X_train[Nk], y_train[Nk], opfun)
+    X_trains, y_trains = train_dataset.getItems(Nk)
+    g_Nk, obj_Nk = get_grad(optimizer, X_trains, y_trains, opfun)
 
     # compute accumulated gradient over sample
     g_Sk = overlap_ratio * (g_Ok_prev + g_Ok) + (1 - 2 * overlap_ratio) * g_Nk
@@ -171,7 +170,8 @@ for n_iter in range(max_iter):
 
     # compute previous overlap gradient for next sample
     Ok_prev = Ok
-    g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_train[Ok_prev], y_train[Ok_prev], opfun)
+    X_trains, y_trains = train_dataset.getItems(Ok_prev)
+    g_Ok_prev, obj_Ok_prev = get_grad(optimizer, X_trains, y_trains, opfun)
 
     # curvature update
     optimizer.curvature_update(g_Ok_prev, eps=0.2, damping=True)
@@ -182,12 +182,22 @@ for n_iter in range(max_iter):
 
 
     model.eval()
-    train_loss, test_loss, test_acc = compute_stats(X_train, y_train, X_test,
-                                                    y_test, opfun, accfun, ghost_batch=128)
+    train_loss, test_loss, test_acc = compute_stats(X_trains, y_trains, [],
+                                                    [], opfun, accfun, ghost_batch=128)
+
+    all_test_loss = 0.0
+    all_test_acc = 0.0
+    for i in range(10):
+        X_tests, y_tests = test_dataset.getItems(range(0,i*10000))
+        train_loss, test_loss, test_acc = compute_stats([], [], X_tests, y_tests, opfun, accfun, ghost_batch=128)
+        all_test_acc += test_acc
+        all_test_loss += test_loss
+    all_test_loss/=10.0
+    all_test_acc/=10.0
 
     # print data
     print('Iter:', n_iter + 1, 'lr:', lr, 'Training Loss:', train_loss,
-          'Test Loss:', test_loss, 'Test Accuracy:', test_acc, 'training time: %.2f seconds' %end)
+          'Test Loss:', all_test_loss, 'Test Accuracy:', all_test_acc, 'training time: %.2f seconds' %end)
 
 # begin = time.time()
 # # Training the Model
