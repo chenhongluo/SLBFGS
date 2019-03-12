@@ -57,14 +57,15 @@ class RCV1DataSet(Dataset):
         return doc,label
 
     def getItems(self,idxs):
-        docs = np.zeros(shape=(len(self.data),self.dim), dtype=np.float32)
-        labels = np.zeros(shape=(len(self.data)), dtype=np.float32)
+        docs = np.zeros(shape=(len(idxs),self.dim), dtype=np.float32)
+        labels = np.zeros(shape=(len(idxs)), dtype=np.float32)
+        ii = 0
         for k in idxs:
             for i in range(0, len(self.data[k]), 2):
                 index = self.data[k][i]
                 value = self.data[k][i + 1]
-                docs[k][index] = value
-            labels[k] = self.label[k]
+                docs[ii][index] = value
+            labels[ii] = self.label[k]
         return docs,labels
 
 # Hyper Parameters
@@ -167,7 +168,6 @@ for n_iter in range(max_iter):
 
     # compute overlap gradient and objective
     X_trains, y_trains = train_dataset.getItems(Ok)
-    print(len(X_trains))
     end = time.time() - begin
     print(end)
 
