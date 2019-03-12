@@ -99,7 +99,7 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
 
     """
 
-    begin = time.time()
+
     if(torch.cuda.is_available()):
         obj = torch.tensor(0, dtype=torch.float).cuda()
     else:
@@ -113,6 +113,7 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
     for idx in np.array_split(np.arange(Sk_size), max(int(Sk_size/ghost_batch), 1)):
 
         # define ops
+        begin = time.time()
         ops = opfun(X_Sk[idx])
 
         # define targets
@@ -124,13 +125,14 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
         # define loss and perform forward-backward pass
         loss_fn = F.cross_entropy(ops, tgts)*(len(idx)/Sk_size)
         loss_fn.backward()
+        end = time.time() - begin
+        print("time:", end)
 
         # accumulate loss
         obj += loss_fn
 
     # gather flat gradient
-    end = time.time() - begin
-    print("time:",end)
+
     grad = optimizer._gather_flat_grad()
 
     return grad, obj
