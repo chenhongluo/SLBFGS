@@ -87,6 +87,9 @@ test_files = []
 for i in range(30, 80):
     test_files.append('RCV1_%d-80.data' % i)
 
+if (torch.cuda.is_available()):
+    print("fasfdsa")
+
 # Dataset
 train_dataset = RCV1DataSet(data_files=train_files, root_dir='./data/RCV1')
 
@@ -114,8 +117,8 @@ class LogisticRegression(nn.Module):
         return out
 
 
-model = LogisticRegression(input_size, num_classes).to(device)
-opfun = lambda X: model.forward(torch.from_numpy(X).to(device))
+model = LogisticRegression(input_size, num_classes).cuda()
+opfun = lambda X: model.forward(torch.from_numpy(X).cuda())
 
 predsfun = lambda op: np.argmax(op.cpu().data.numpy(), 1)
 
