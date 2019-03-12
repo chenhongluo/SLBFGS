@@ -96,18 +96,16 @@ test_dataset = RCV1DataSet(data_files=test_files, root_dir='./data/RCV1')
 # batch_size = train_dataset.n_docs
 # Dataset Loader (Input Pipline)
 # batch_size = len(train_dataset)
-# train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-#                                            batch_size=batch_size,
-#                                            shuffle=True)
-#
-# test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-#                                           batch_size=100,
-#                                           shuffle=False)
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=batch_size,
+                                           shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                          batch_size=100,
+                                          shuffle=False)
 
 (X_train, y_train) = train_dataset.getItems()
 (X_test, y_test) = test_dataset.getItems()
-X_train = X_train.astype('float32')
-X_test = X_test.astype('float32')
 
 # Model
 class LogisticRegression(nn.Module):
