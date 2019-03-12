@@ -167,6 +167,7 @@ for n_iter in range(max_iter):
 
     # compute overlap gradient and objective
     X_trains, y_trains = train_dataset.getItems(Ok)
+    print(len(X_trains))
     end = time.time() - begin
     print(end)
 
