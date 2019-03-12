@@ -109,7 +109,7 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
 
     optimizer.zero_grad()
     print(int(Sk_size / ghost_batch),max(int(Sk_size / ghost_batch), 1))
-    print(np.array_split(np.arange(Sk_size), max(int(Sk_size/ghost_batch), 1)).shape)
+    print(len(np.array_split(np.arange(Sk_size), max(int(Sk_size/ghost_batch), 1))))
 
     # loop through relevant data
     k = 0
