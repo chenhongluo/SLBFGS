@@ -109,7 +109,7 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
 
     optimizer.zero_grad()
     print(int(Sk_size / ghost_batch),max(int(Sk_size / ghost_batch), 1))
-    # print(np.array_split(np.arange(Sk_size), max(int(Sk_size/ghost_batch), 1)))
+    print(np.array_split(np.arange(Sk_size), max(int(Sk_size/ghost_batch), 1)).shape)
 
     # loop through relevant data
     k = 0
@@ -129,7 +129,8 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
         loss_fn = F.cross_entropy(ops, tgts)*(len(idx)/Sk_size)
         loss_fn.backward()
         end = time.time() - begin
-        print(k," time is :", end)
+        k+=1
+        # print(k," time is :", end)
 
         # accumulate loss
         obj += loss_fn
