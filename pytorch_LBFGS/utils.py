@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
+import time
 
 #%% Compute Statistics (Training Loss, Test Loss, Test Accuracy)
 
@@ -98,6 +99,7 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
 
     """
 
+    begin = time.time()
     if(torch.cuda.is_available()):
         obj = torch.tensor(0, dtype=torch.float).cuda()
     else:
@@ -127,6 +129,8 @@ def get_grad(optimizer, X_Sk, y_Sk, opfun, ghost_batch=128):
         obj += loss_fn
 
     # gather flat gradient
+    end = time.time() - begin
+    print("time:",end)
     grad = optimizer._gather_flat_grad()
 
     return grad, obj
